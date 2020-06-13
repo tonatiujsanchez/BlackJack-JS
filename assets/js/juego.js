@@ -8,14 +8,18 @@
 let deck         = [];
 const tipos      = [ 'C', 'D', 'H', 'S' ];
 const especiales = [ 'A', 'J', 'K', 'Q' ];
-let puntosJugador = 0,
+
+let puntosJugador     = 0,
     puntosComputadora = 0;
 
 //Referencias del HTML
-const btnPedir = document.querySelector('#btnPedir');
+const btnPedir   = document.querySelector('#btnPedir');
+const btnDetener = document.querySelector('#btnDetener');
+const btnNuevo   = document.querySelector('#btnNuevo');
 
-const PuntosJugadoresHTML = document.querySelectorAll('small');
-const divJugadorCartas = document.querySelector('#jugador-cartas');
+const divJugadorCartas     = document.querySelector('#jugador-cartas');
+const divComputadoraCartas = document.querySelector('#computadora-cartas');
+const PuntosJugadoresHTML  = document.querySelectorAll('small');
 
 
 // Esta funcion crea un nueva baraja
@@ -52,35 +56,99 @@ const pedirCarta = () => {
 
 //pedirCarta(); nos indica el valor que tiene la carta pedida
 const valorCarta = ( carta ) =>{
+
     const valor = carta.substring(0, carta.length - 1);
+
     return ( isNaN( valor ) ) ?
             ( ( valor === 'A' ) ? 11 : 10 )
             : valor * 1;
 }
 
+// Turno de la computadora
+const turnoComputadora = ( puntosMinimos ) =>{
+
+    do {
+        //Pedimos una carta, la sumamos y mostramos el valor en el  HTML de la computadora
+        const carta       = pedirCarta();
+        puntosComputadora = puntosComputadora + valorCarta( carta );
+        PuntosJugadoresHTML[1].innerText = puntosComputadora;
+    
+        //Creamos el HTML de la carta, agregamos el "src" y la "clase" y mostramos la imagen
+        const imgCarta     = document.createElement('img');
+        imgCarta.src       = `assets/cartas/${carta}.png`;
+        imgCarta.className = 'carta';
+        divComputadoraCartas.append(imgCarta);
+
+        if ( puntosMinimos > 21 ) {
+            break;
+        }
+
+    } while ( (puntosComputadora < puntosMinimos) && ( puntosMinimos <= 21 ) );
+
+    // Definir el ganador y mostrar mensaje
+    setTimeout(() => {
+        if ( ( puntosMinimos <= 21 ) && ( puntosComputadora > 21 ) ){
+            alert('Genial ¡Ganaste!');
+        }else if( (puntosComputadora <=21) && ( puntosMinimos > 21 ) ){
+            alert('Gano la computadora');
+        }else if( puntosMinimos === puntosComputadora ) {
+            alert('Empatados');
+        }else{
+            alert('Ganó la computadora');
+        }
+    }, 500 );
+}
+
+
 //Eventos
 btnPedir.addEventListener('click', () => {
     //Pedimos una carta, la sumamos y mostramos el valor en el  HTML del jugador
-    const carta = pedirCarta();
+    const carta   = pedirCarta();
     puntosJugador = puntosJugador + valorCarta( carta );
-    console.log( puntosJugador );
     PuntosJugadoresHTML[0].innerText = puntosJugador;
 
     //Creamos el HTML de la carta, agregamos el "src" y la "clase" y mostramos la imagen
-    const imgCarta = document.createElement('img');
-    imgCarta.src = `assets/cartas/${carta}.png`;
+    const imgCarta     = document.createElement('img');
+    imgCarta.src       = `assets/cartas/${carta}.png`;
     imgCarta.className = 'carta';
     divJugadorCartas.append(imgCarta);
 
     // Comprobamos si el jugador ganó o perdio
     if( puntosJugador > 21 ){
-        console.warn('¡Ya perdiste!');
-        btnPedir.disabled = true;        
-    }else if( puntosJugador === 21 ){
-        console.info('21, Genial ¡lo lograste!');
-        btnPedir.disabled = true;
-    }
+        // console.warn('¡Ya perdiste!');
+        btnPedir.disabled   = true;
+        btnDetener.disabled = true;
+        turnoComputadora(puntosJugador);  
 
+    }else if( puntosJugador === 21 ){
+        // console.info('21, Genial ¡lo lograste!');
+        btnPedir.disabled   = true;
+        btnDetener.disabled = true;
+        turnoComputadora(puntosJugador);
+    }
 });
 
+btnDetener.addEventListener( 'click', () => {
+    btnPedir.disabled   = true;
+    btnDetener.disabled = true;
+    turnoComputadora(puntosJugador);
+});
 
+btnNuevo.addEventListener( 'click', ()=>{
+
+    console.clear();
+    deck = [];
+    deck = crearDeck();
+    
+    puntosJugador     = 0;
+    puntosComputadora = 0;
+
+    PuntosJugadoresHTML[0].innerHTML = 0;
+    PuntosJugadoresHTML[1].innerText = 0;
+
+    divJugadorCartas.innerHTML     = '';
+    divComputadoraCartas.innerHTML = '';
+
+    btnPedir.disabled   = false;
+    btnDetener.disabled = false;
+});
